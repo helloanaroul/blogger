@@ -1,0 +1,72 @@
+:root {
+  --wa-size: 64px;
+  --wa-shadow: 0 8px 24px rgba(0,0,0,.2);
+  --wa-shadow-focus: 0 0 0 4px rgba(37,211,102,.35);
+  --wa-bottom: 28px;
+  --wa-right: 28px;
+}
+
+.wa-fab {
+  position: fixed;
+  right: var(--wa-right);
+  bottom: var(--wa-bottom);
+  width: var(--wa-size);
+  height: var(--wa-size);
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--wa-shadow);
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+}
+
+.wa-fab:hover {
+  transform: translateY(-2px) scale(1.03);
+  filter: brightness(1.03);
+}
+.wa-fab:active {
+  transform: translateY(0) scale(.98);
+}
+.wa-fab:focus-visible {
+  outline: none;
+  box-shadow: var(--wa-shadow-focus);
+}
+
+.wa-fab img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.wa-label {
+  position: fixed;
+  right: calc(var(--wa-right) + var(--wa-size) + 12px);
+  bottom: calc(var(--wa-bottom) + (var(--wa-size) - 36px)/2);
+  background: #1e1e1e;
+  color: #f9fafb;
+  border-radius: 9999px;
+  padding: 8px 12px;
+  font: 500 14px/1 system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji";
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0,0,0,.15);
+  opacity: 0;
+  transform: translateX(8px);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.wa-fab:hover + .wa-label,
+.wa-fab:focus-visible + .wa-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wa-fab, .wa-label {
+    transition: none;
+  }
+}
