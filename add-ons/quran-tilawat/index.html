@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>কুরআন তিলাওয়াত</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://use.hugeicons.com/font/icons.css">
+  <link rel="stylesheet" href="https://fonts.toolsax.com/kohinoor/fonts.min.css">
+  <style>
+    * {
+      font-family: 'Kohinoor Bangla', sans-serif;
+    }
+    .hgi-stroke {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.5rem center;
+      background-repeat: no-repeat;
+      background-size: 1.5em 1.5em;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+  </style>
+</head>
+<body class="bg-[#f9f9fc] text-[#1a1a24] min-h-screen pt-6 pb-28">
+  <main class="max-w-[860px] mx-auto px-4">
+    <!-- Reciter Select Dropdown -->
+    <div class="mb-8">
+      <label class="block text-sm font-medium text-[#6f6f83] mb-2">আপনার পছন্দের ক্বারী নির্বাচন করুন</label>
+      <select id="reciterSelect" class="w-full bg-white border border-[#dddee5] rounded-[5px] p-3 text-[#1a1a24] focus:outline-none focus:border-[#1f1f2b] transition-colors cursor-pointer">
+        <!-- Options will be populated by JavaScript -->
+      </select>
+    </div>
+
+    <!-- Surah List -->
+     <div class="block text-sm font-medium text-[#6f6f83] mb-2">সুরা তালিকা থেকে যেটা শুনতে চান সেটা বাছাই করুন</div>
+    <div id="surahListContainer" class="bg-white border border-[#eaeaef] rounded-[5px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.02)]"></div>
+  </main>
+
+  <!-- Fixed Bottom Player - Only Previous/Play/Next -->
+  <div class="fixed bottom-0 left-0 w-full bg-white border-t border-[#e5e5eb] px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+    <div class="max-w-[860px] mx-auto flex items-center justify-center gap-4">
+      <button id="prevBtn" class="w-10 h-10 rounded-full border border-[#dbdbe5] bg-transparent flex items-center justify-center text-xl text-[#1a1a24] hover:bg-[#f5f5fa] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="hgi hgi-stroke hgi-previous"></i>
+      </button>
+      
+      <button id="playPauseBtn" class="w-12 h-12 rounded-full border border-[#1e1e2a] bg-[#1e1e2a] flex items-center justify-center text-xl text-white hover:bg-[#2a2a36] transition-all duration-150">
+        <i class="hgi hgi-stroke hgi-play" id="playPauseIcon"></i>
+      </button>
+      
+      <button id="nextBtn" class="w-10 h-10 rounded-full border border-[#dbdbe5] bg-transparent flex items-center justify-center text-xl text-[#1a1a24] hover:bg-[#f5f5fa] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="hgi hgi-stroke hgi-next"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const reciters = [
+      {id:"mishaari-raashid-al-3afaasee",name:"মিশারি রশিদ আল-আফাসি",base:"https://download.quranicaudio.com/quran/mishaari_raashid_al_3afaasee/"},
+      {id:"sudais",name:"আব্দুর-রহমান আস-সুদাইস",base:"https://download.quranicaudio.com/quran/abdurrahmaan_as-sudays/"},
+      {id:"muaiqly",name:"মাহের আল-মুআইকলি",base:"https://download.quranicaudio.com/quran/maher_almu3aiqly/year1440/"},
+      {id:"ghamdi",name:"খালিদ আল-গামদি",base:"https://download.quranicaudio.com/quran/khalid_alghamdi/"},
+      {id:"juhani",name:"আব্দুল্লাহ আওয়াদ আল-জুহানি",base:"https://download.quranicaudio.com/quran/abdullaah_3awwaad_al-juhaynee/"},
+      {id:"abdullah-basfar",name:"আব্দুল্লাহ বাসফার",base:"https://download.quranicaudio.com/quran/abdullaah_basfar/"},
+      {id:"huthaify",name:"আলী আব্দুর-রহমান আল-হুযাইফি",base:"https://download.quranicaudio.com/quran/huthayfi/"},
+      {id:"abdul-muhsin-alqasim",name:"আব্দুল মুহসিন আল-কাসিম",base:"https://download.quranicaudio.com/quran/abdul_muhsin_alqasim/"},
+      {id:"thubaity",name:"আব্দুলবারি আত-থুবাইতি",base:"https://download.quranicaudio.com/quran/thubaity/"},
+      {id:"al-ajmy",name:"আহমেদ ইবনে আলী আল-আজমি",base:"https://download.quranicaudio.com/quran/ahmed_ibn_3ali_al-3ajamy/"},
+      {id:"abdul-wadood-haneef",name:"আব্দুল ওয়াদুদ হানিফ",base:"https://download.quranicaudio.com/quran/abdulwadood_haneef/"},
+      {id:"sa3ood-al-shuraym",name:"সাউদ আশ-শুরাইম",base:"https://download.quranicaudio.com/quran/sa3ood_al-shuraym/"},
+      {id:"muhammad-khaleel",name:"মুহাম্মাদ খলিল",base:"https://download.quranicaudio.com/quran/muhammad_khaleel/"},
+      {id:"badr-al-turki",name:"বদর আত-তুর্কি",base:"https://download.quranicaudio.com/quran/badr_al_turki/mp3/"}
+    ];
+
+    const surahs = [
+      "আল-ফাতিহা","আল-বাকারা","আলে ইমরান","আন-নিসা","আল-মায়িদা","আল-আনআম",
+      "আল-আরাফ","আল-আনফাল","আত-তাওবা","ইউনুস","হুদ","ইউসুফ",
+      "আর-রাদ","ইব্রাহিম","আল-হিজর","আন-নাহল","আল-ইসরা","আল-কাহফ",
+      "মারইয়াম","ত্বোয়া-হা","আল-আম্বিয়া","আল-হাজ্জ","আল-মুমিনুন","আন-নূর",
+      "আল-ফুরকান","আশ-শুআরা","আন-নামল","আল-কাসাস","আল-আনকাবুত","আর-রুম",
+      "লুকমান","আস-সিজদা","আল-আহযাব","সাবা","ফাতির","ইয়াসিন",
+      "আস-সাফফাত","সোয়াদ","আজ-জুমার","গাফির","ফুসসিলাত","আশ-শুরা",
+      "আজ-যুখরুফ","আদ-দোখান","আল-জাসিয়া","আল-আহকাফ","মুহাম্মদ","আল-ফাতহ",
+      "আল-হুজুরাত","ক্বাফ","আজ-জারিয়াত","আত-তুর","আন-নাজম","আল-ক্বামার",
+      "আর-রহমান","আল-ওয়াকিয়া","আল-হাদিদ","আল-মুজাদিলা","আল-হাশর","আল-মুমতাহিনা",
+      "আস-সাফ","আল-জুমুআ","আল-মুনাফিকুন","আত-তাগাবুন","আত-তালাক","আত-তাহরিম",
+      "আল-মুলক","আল-কলম","আল-হাক্কা","আল-মাআরিজ","নুহ","আল-জিন",
+      "আল-মুজ্জাম্মিল","আল-মুদ্দাসসির","আল-কিয়ামা","আল-ইনসান","আল-মুরসালাত","আন-নাবা",
+      "আন-নাজিয়াত","আবাসা","আত-তাকভির","আল-ইনফিতার","আল-মুতাফফিফিন","আল-ইনশিকাক",
+      "আল-বুরুজ","আত-তারিক","আল-আলা","আল-গাশিয়া","আল-ফাজর","আল-বালাদ",
+      "আশ-শামস","আল-লাইল","আদ-দুহা","আশ-শারহ","আত-তিন","আল-আলাক",
+      "আল-কদর","আল-বাইয়্যিনা","আজ-যালযালা","আল-আদিয়াত","আল-কারিয়া","আত-তাকাসুর",
+      "আল-আসর","আল-হুমাযা","আল-ফিল","কুরাইশ","আল-মাউন","আল-কাওসার",
+      "আল-কাফিরুন","আন-নাসর","আল-মাসাদ","আল-ইখলাস","আল-ফালাক","আন-নাস"
+    ];
+
+    const bn = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
+    const toBn = n => n.toString().split("").map(d => bn[d]).join("");
+
+    const reciterSelect = document.getElementById("reciterSelect");
+    const surahContainer = document.getElementById("surahListContainer");
+    
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const playPauseIcon = document.getElementById("playPauseIcon");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let audio = new Audio();
+    let currentReciter = reciters[0];
+    let currentSurahIndex = -1;
+    let isPlaying = false;
+    let playingBtn = null;
+
+    // Populate reciter select dropdown
+    function populateReciterSelect() {
+      reciterSelect.innerHTML = reciters.map(r => 
+        `<option value="${r.id}" ${r.id === currentReciter.id ? "selected" : ""}>${r.name}</option>`
+      ).join("");
+    }
+
+    // Handle reciter change
+    reciterSelect.addEventListener("change", (e) => {
+      const selectedId = e.target.value;
+      currentReciter = reciters.find(r => r.id === selectedId) || reciters[0];
+      
+      // Stop playing if reciter changes
+      if (isPlaying || currentSurahIndex !== -1) {
+        stopCurrentPlayback();
+      }
+    });
+
+    function stopCurrentPlayback() {
+      audio.pause();
+      audio.currentTime = 0;
+      isPlaying = false;
+      playPauseIcon.className = "hgi hgi-stroke hgi-play";
+      if (playingBtn) {
+        playingBtn.classList.remove("playing", "!bg-[#1e1e2a]", "!text-white", "!border-[#1e1e2a]");
+        playingBtn.innerHTML = '<i class="hgi hgi-stroke hgi-play"></i>';
+        playingBtn = null;
+      }
+      currentSurahIndex = -1;
+      updateNavButtons();
+    }
+
+    function format(n) {
+      return String(n).padStart(3, "0");
+    }
+
+    function playSurah(index) {
+      if (index < 0 || index >= surahs.length) return;
+      
+      const surahNumber = format(index + 1);
+      const url = currentReciter.base + surahNumber + ".mp3";
+      
+      // Remove playing state from previous button
+      if (playingBtn) {
+        playingBtn.classList.remove("playing", "!bg-[#1e1e2a]", "!text-white", "!border-[#1e1e2a]");
+        playingBtn.innerHTML = '<i class="hgi hgi-stroke hgi-play"></i>';
+      }
+      
+      audio.src = url;
+      audio.play();
+      
+      isPlaying = true;
+      currentSurahIndex = index;
+      playPauseIcon.className = "hgi hgi-stroke hgi-pause";
+      
+      // Find and update the corresponding button in surah list
+      const surahBtns = document.querySelectorAll(".action-btn");
+      if (surahBtns[index]) {
+        playingBtn = surahBtns[index];
+        playingBtn.classList.add("playing", "!bg-[#1e1e2a]", "!text-white", "!border-[#1e1e2a]");
+        playingBtn.innerHTML = '<i class="hgi hgi-stroke hgi-pause"></i>';
+      }
+      
+      updateNavButtons();
+    }
+
+    function togglePlayPause() {
+      if (currentSurahIndex === -1) return;
+      
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+        playPauseIcon.className = "hgi hgi-stroke hgi-play";
+        if (playingBtn) {
+          playingBtn.innerHTML = '<i class="hgi hgi-stroke hgi-play"></i>';
+        }
+      } else {
+        audio.play();
+        isPlaying = true;
+        playPauseIcon.className = "hgi hgi-stroke hgi-pause";
+        if (playingBtn) {
+          playingBtn.innerHTML = '<i class="hgi hgi-stroke hgi-pause"></i>';
+        }
+      }
+    }
+
+    function playPrevious() {
+      if (currentSurahIndex > 0) {
+        playSurah(currentSurahIndex - 1);
+      }
+    }
+
+    function playNext() {
+      if (currentSurahIndex < surahs.length - 1) {
+        playSurah(currentSurahIndex + 1);
+      }
+    }
+
+    function updateNavButtons() {
+      prevBtn.disabled = currentSurahIndex <= 0;
+      nextBtn.disabled = currentSurahIndex >= surahs.length - 1;
+    }
+
+    function renderSurahs() {
+      surahContainer.innerHTML = surahs.map((s, i) => `
+        <div class="flex items-center p-2.5 border-b border-[#efeff2] last:border-b-0">
+          <i class="hgi hgi-stroke hgi-music-note-04 text-xl text-[#8f8fa1] mr-3"></i>
+          <div class="flex-1 flex gap-3 items-center">
+            <span class="text-[#8f8fa1] text-sm min-w-[35px]">${toBn(i + 1)}</span>
+            <span class="font-medium text-[#1a1a24] text-sm">সূরা ${s}</span>
+          </div>
+          <button class="action-btn w-8 h-8 rounded-full border border-[#dbdbe5] bg-transparent flex items-center justify-center text-base text-[#1a1a24] hover:bg-[#f5f5fa] transition-all duration-150">
+            <i class="hgi hgi-stroke hgi-play"></i>
+          </button>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".action-btn").forEach((btn, i) => {
+        btn.onclick = () => {
+          if (currentSurahIndex === i && isPlaying) {
+            togglePlayPause();
+          } else {
+            playSurah(i);
+          }
+        };
+      });
+    }
+
+    // Audio event listeners
+    audio.addEventListener("ended", () => {
+      if (currentSurahIndex < surahs.length - 1) {
+        playSurah(currentSurahIndex + 1);
+      } else {
+        stopCurrentPlayback();
+      }
+    });
+
+    audio.addEventListener("pause", () => {
+      isPlaying = false;
+      playPauseIcon.className = "hgi hgi-stroke hgi-play";
+    });
+
+    audio.addEventListener("play", () => {
+      isPlaying = true;
+      playPauseIcon.className = "hgi hgi-stroke hgi-pause";
+    });
+
+    // Bottom player controls
+    playPauseBtn.addEventListener("click", togglePlayPause);
+    prevBtn.addEventListener("click", playPrevious);
+    nextBtn.addEventListener("click", playNext);
+
+    // Initialize
+    populateReciterSelect();
+    renderSurahs();
+    updateNavButtons();
+  </script>
+</body>
+</html>
